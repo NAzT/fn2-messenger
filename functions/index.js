@@ -21,7 +21,7 @@ exports.webhook = functions.https.onRequest((req, res) => {
  else if(req.method == "POST") {
     var data = req.body;
     if (data.object === 'page') {
-      data.entry.forEach(entry => {
+      data.entry && data.entry.forEach(entry => {
         var pageID = entry.id;
         var timeOfEvent = entry.time;
         console.log(`entry : ${JSON.stringify(entry)}`)
@@ -55,6 +55,9 @@ function receivedMessage(event) {
       case 'hello':
         greeting(senderID)
         break;
+      case 'button':
+        sendButtonMessage(senderID)
+        break;
       default:
         sendTextMessage(senderID, messageText)
     }
@@ -69,7 +72,7 @@ function greeting(recipientId) {
       id: recipientId
     },
     message: {
-      text: `Helo ${recipientId}`
+      text: `Hello, ${recipientId}`
     }
   }
   callSendAPI(messageData)
@@ -121,4 +124,36 @@ function callSendAPI(messageData) {
     console.log(`error : ${error}`)
     console.log(`axios send message failed`);
   })
+}
+
+function sendButtonMessage(recipientId) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "button",
+          text: "This is test text",
+          buttons:[{
+            type: "web_url",
+            url: "https://www.oculus.com/en-us/rift/",
+            title: "Open Web URL"
+          }, {
+            type: "postback",
+            title: "Trigger Postback",
+            payload: "DEVELOPER_DEFINED_PAYLOAD"
+          }, {
+            type: "phone_number",
+            title: "Call Phone Number",
+            payload: "+16505551234"
+          }]
+        }
+      }
+    }
+  };  
+
+  callSendAPI(messageData);
 }
